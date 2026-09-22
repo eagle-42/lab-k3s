@@ -1,0 +1,31 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          persist-credentials: false
+
+      - name: shellcheck
+        run: shellcheck --version && find . -name '*.sh' -print0 | xargs -0 shellcheck
+
+      - name: yamllint
+        run: pipx install yamllint==1.37.1 && yamllint .
+
+      - name: markdownlint
+        run: npm install -g markdownlint-cli@0.45.0 && markdownlint '**/*.md'
